@@ -1,0 +1,219 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/madjidsadou/freecodescamp/blob/main/MLP_healt_cost_predictiong\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "1rRo8oNqZ-Rj"
+      },
+      "outputs": [],
+      "source": [
+        "# Import libraries. You may or may not use all of these.\n",
+        "!pip install -q git+https://github.com/tensorflow/docs\n",
+        "import ma\n",
+        "import pandas astplotlib.pyplot as plt\n",
+        "import numpy as np pd\n",
+        "\n",
+        "try:\n",
+        "  # %tensorflow_version only exists in Colab.\n",
+        "  %tensorflow_version 2.x\n",
+        "except Exception:\n",
+        "  pass\n",
+        "import tensorflow as tf\n",
+        "\n",
+        "from tensorflow import keras\n",
+        "from tensorflow.keras import layers\n",
+        "\n",
+        "import tensorflow_docs as tfdocs\n",
+        "import tensorflow_docs.plots\n",
+        "import tensorflow_docs.modeling"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "CiX2FI4gZtTt"
+      },
+      "outputs": [],
+      "source": [
+        "# Import data\n",
+        "!wget https://cdn.freecodecamp.org/project-data/health-costs/insurance.csv\n",
+        "dataset = pd.read_csv('insurance.csv')\n",
+        "dataset.tail()"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "dataset = pd.get_dummies(dataset, columns=['sex', 'smoker', 'region'], drop_first=True)\n"
+      ],
+      "metadata": {
+        "id": "haDpNaE9niBb"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.model_selection import train_test_split\n"
+      ],
+      "metadata": {
+        "id": "hNxBh8UOkgdN"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "print(dataset.head(5))"
+      ],
+      "metadata": {
+        "id": "1gvyXKyfnmLE"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "dataset['expenses'].mean()\n",
+        "dataset['expenses'].std()"
+      ],
+      "metadata": {
+        "id": "1_7t7CgcsFl7"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "LcopvQh3X-kX"
+      },
+      "outputs": [],
+      "source": [
+        "X = dataset[['age', 'sex_male', 'children', 'smoker_yes', 'region_northwest','region_southeast', 'region_southwest']]\n",
+        "Y = dataset['expenses']\n",
+        "X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "input_shape = (7,)\n",
+        "X_train = X_train.astype(float)\n",
+        "Y_train = Y_train.astype(float)\n",
+        "X_test = X_test.astype(float)\n",
+        "Y_test = Y_test.astype(float)\n"
+      ],
+      "metadata": {
+        "id": "K0qVG3Plkoqs"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from tensorflow.keras.models import Sequential # import the Sequential class\n",
+        "from tensorflow.keras.layers import Dense, Dropout\n"
+      ],
+      "metadata": {
+        "id": "b-o0W18zl1em"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "model = Sequential()\n",
+        "model.add(tf.keras.layers.Normalization(input_shape=input_shape))\n",
+        "model.add(Dense(128, kernel_initializer='normal', activation='relu'))\n",
+        "model.add(Dense(256, kernel_initializer='normal', activation='relu'))\n",
+        "model.add(Dense(256, kernel_initializer='normal', activation='relu'))\n",
+        "model.add(Dense(256, kernel_initializer='normal', activation='relu'))\n",
+        "model.add(Dropout(0.2))\n",
+        "model.add(Dense(32,kernel_initializer='normal',activation='linear'))\n",
+        "model.add(Dense(1))\n"
+      ],
+      "metadata": {
+        "id": "snkn-aeQlU-F"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "model.compile(loss='mean_absolute_error', optimizer='adam', metrics=['mean_absolute_error','mean_squared_error'])\n",
+        "model.fit(X_train, Y_train, epochs=50, batch_size=8, verbose=1)"
+      ],
+      "metadata": {
+        "id": "l-SMAy8gl_SL"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {
+        "id": "Xe7RXH3N3CWU"
+      },
+      "outputs": [],
+      "source": [
+        "# RUN THIS CELL TO TEST YOUR MODEL. DO NOT MODIFY CONTENTS.\n",
+        "# Test model by checking how well the model generalizes using the test set.\n",
+        "loss, mae, mse = model.evaluate(X_test, Y_test, verbose=2)\n",
+        "\n",
+        "print(\"Testing set Mean Abs Error: {:5.2f} expenses\".format(mae))\n",
+        "\n",
+        "if mae < 3500:\n",
+        "  print(\"You passed the challenge. Great job!\")\n",
+        "else:\n",
+        "  print(\"The Mean Abs Error must be less than 3500. Keep trying.\")\n",
+        "\n",
+        "# Plot predictions.\n",
+        "test_predictions = model.predict(X_test).flatten()\n",
+        "\n",
+        "a = plt.axes(aspect='equal')\n",
+        "plt.scatter(Y_test, test_predictions)\n",
+        "plt.xlabel('True values (expenses)')\n",
+        "plt.ylabel('Predictions (expenses)')\n",
+        "lims = [0, 50000]\n",
+        "plt.xlim(lims)\n",
+        "plt.ylim(lims)\n",
+        "_ = plt.plot(lims,lims)\n"
+      ]
+    }
+  ],
+  "metadata": {
+    "colab": {
+      "private_outputs": true,
+      "provenance": [],
+      "toc_visible": true,
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "display_name": "Python 3",
+      "name": "python3"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 0
+}
